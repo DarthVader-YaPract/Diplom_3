@@ -9,7 +9,7 @@ from helpers import provision_account, remove_account
 from pages.constructor_page import ConstructorPage
 from pages.login_page import LoginPage
 from pages.order_feed_page import OrderFeedPage
-from settings import ELEMENT_WAIT
+from settings import PAGE_LOAD_WAIT
 
 
 os.environ["SE_SKIP_DRIVER_IN_PATH"] = "true"
@@ -38,10 +38,10 @@ BROWSERS = (
 
 @pytest.fixture(params=BROWSERS)
 def driver(request):
-    driver = request.param()
-    driver.set_page_load_timeout(ELEMENT_WAIT)
-    yield driver
-    driver.quit()
+    browser_driver = request.param()
+    browser_driver.set_page_load_timeout(PAGE_LOAD_WAIT)
+    yield browser_driver
+    browser_driver.quit()
 
 
 @pytest.fixture
@@ -69,4 +69,7 @@ def feed(driver):
 @pytest.fixture
 def signed_in_constructor(driver, registered_user):
     login = LoginPage(driver).open()
-    return login.login(registered_user["email"], registered_user["password"])
+    return login.login(
+        registered_user["email"],
+        registered_user["password"],
+    )

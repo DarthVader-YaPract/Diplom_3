@@ -1,7 +1,9 @@
 from selenium.webdriver import ActionChains
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.support import expected_conditions as conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
+from locators.common_locators import CommonLocators
 from settings import ELEMENT_WAIT
 
 
@@ -23,8 +25,20 @@ class BasePage:
     def find_all(self, locator):
         return self.driver.find_elements(*locator)
 
+    def _no_visible_overlay(self, _):
+        return not any(
+            overlay.is_displayed()
+            for overlay in self.find_all(CommonLocators.MODAL_OVERLAY)
+        )
+
     def click(self, locator):
-        self.wait.until(conditions.element_to_be_clickable(locator)).click()
+        self.wait.until(self._no_visible_overlay)
+        element = self.wait.until(conditions.element_to_be_clickable(locator))
+        try:
+            element.click()
+        except ElementClickInterceptedException:
+            self.wait.until(self._no_visible_overlay)
+            self.wait.until(conditions.element_to_be_clickable(locator)).click()
 
     def fill(self, locator, value):
         field = self.find(locator)
